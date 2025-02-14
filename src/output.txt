@@ -1,0 +1,1108 @@
+.active_link {
+  font-weight: bold;
+  color: orange;
+}
+.pointer {
+  cursor: pointer;
+}
+import { bootstrapApplication } from '@angular/platform-browser';
+import { appConfig } from './app/app.config';
+import { AppComponent } from './app/app.component';
+
+bootstrapApplication(AppComponent, appConfig)
+  .catch((err) => console.error(err));
+import { Pipe, PipeTransform } from '@angular/core';
+
+@Pipe({
+  name: 'discount',
+})
+export class DiscountPipe implements PipeTransform {
+  transform(price: number, discountPercentage?: number): string {
+    if (discountPercentage && discountPercentage > 0) {
+      const discountedPrice = price - 2;
+      return ` EGP ${discountedPrice} `;
+    }
+    return `Price: ${price}`;
+  }
+}
+import { Component } from '@angular/core';
+import { HeaderComponent } from "./header/header.component";
+import { RouterOutlet } from '@angular/router';
+
+
+@Component({
+  selector: 'app-root',
+  imports: [ HeaderComponent, RouterOutlet],
+  templateUrl: './app.component.html',
+  styleUrl: './app.component.css'
+})
+export class AppComponent {
+  title = 'ecommerce';
+}
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+
+import { RegisterComponent } from './register.component';
+
+describe('RegisterComponent', () => {
+  let component: RegisterComponent;
+  let fixture: ComponentFixture<RegisterComponent>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [RegisterComponent]
+    })
+    .compileComponents();
+
+    fixture = TestBed.createComponent(RegisterComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+});
+import { Component } from '@angular/core';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
+
+@Component({
+  selector: 'app-register',
+  imports: [ReactiveFormsModule, RouterLink],
+  templateUrl: './register.component.html',
+  styleUrl: './register.component.css'
+})
+export class RegisterComponent {
+  registrationForm: FormGroup;
+  constructor(private register: FormBuilder, private router: Router) {
+    this.registrationForm = this.register.group({
+      name: ['', [Validators.required, Validators.minLength(3)]],
+      email: ['',[Validators.required, Validators.pattern('^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{3,}$')]],
+      userName: ['',[Validators.required,Validators.minLength(3)]],
+      password: ['', [
+        Validators.required,
+        Validators.minLength(8),
+        Validators.pattern('(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&-_])[A-Za-z\\d@$!%*?&-_]{8,}')
+      ]],
+      cPassword: ['', [Validators.required, this.passwordMatchValidator]]
+    }
+  );
+  }
+
+  get formControls() {
+    return this.registrationForm.controls;
+  }
+
+  passwordMatchValidator(form: any) {
+    const password = form.get('password')?.value;
+    const cPassword = form.get('cPassword');
+
+    if (password !== cPassword?.value) {
+      cPassword?.setErrors({ passwordMismatch: true });
+    } else {
+      cPassword?.setErrors(null);
+    }
+  }
+
+
+  handleSubmitForm() {
+    if (this.registrationForm.invalid) {
+      this.registrationForm.markAllAsTouched();
+      return;
+    }
+    console.log('Form Submitted:', this.registrationForm.value);
+    this.router.navigate(['/login']);
+  }
+
+}
+<form
+  [formGroup]="registrationForm"
+  (ngSubmit)="handleSubmitForm()"
+>
+  <div class="mb-3">
+    <label for="name" class="form-label">Name</label>
+    <input
+      type="text"
+      class="form-control"
+      id="name"
+      aria-describedby="nameHelp"
+      formControlName="name"
+    />
+    @if(formControls['name'].invalid && formControls['name'].touched){
+    <div id="nameHelp" class="form-text text-danger">
+      @if(formControls['name'].hasError('required')){
+      <span>Name is required</span>
+      }@else if(formControls['name'].hasError('minlength')){
+      <span>Min length is 3 characters</span>
+      }
+    </div>
+    }
+  </div>
+  <div class="mb-3">
+    <label for="email" class="form-label">Email</label>
+    <input
+      type="email"
+      class="form-control"
+      id="email"
+      aria-describedby="emailHelp"
+      formControlName="email"
+    />
+    @if(formControls['email'].invalid && formControls['email'].touched){
+    <div id="emailHelp" class="form-text text-danger">
+      @if(formControls['email'].hasError('required')){
+      <span>Email is required</span>
+      }@else if(formControls['email'].hasError('pattern')){
+      <span>Insert valid email like yourName&#64;example.com</span>
+      }
+    </div>
+    }
+  </div>
+  <div class="mb-3">
+    <label for="userName" class="form-label">User Name</label>
+    <input
+      type="text"
+      class="form-control"
+      id="userName"
+      aria-describedby="userNameHelp"
+      formControlName="userName"
+    />
+    @if(formControls['userName'].invalid && formControls['userName'].touched){
+    <div id="userNameHelp" class="form-text text-danger">
+      @if(formControls['userName'].hasError('required')){
+      <span>User Name is required</span>
+      }@else if(formControls['userName'].hasError('minlength')){
+      <span>Min length is 3 characters</span>
+      }
+    </div>
+    }
+  </div>
+  <div class="mb-3">
+    <label for="password" class="form-label">Password</label>
+    <input
+      type="password"
+      class="form-control"
+      id="password"
+      aria-describedby="passwordHelp"
+      formControlName="password"
+    />
+    @if(formControls['password'].invalid && formControls['password'].touched){
+    <div id="passwordHelp" class="form-text text-danger">
+      @if(formControls['password'].hasError('required')){
+      <span>Password is required</span>
+      }@else if(formControls['password'].hasError('minlength')){
+      <span>Min length is 8 characters</span>
+      }@else if(formControls['password'].hasError('pattern')){
+      <span
+        >Password must contain at least one lowercase letter, one uppercase
+        letter, one number, and one special character</span
+      >
+      }
+    </div>
+    }
+  </div>
+  <div class="mb-3">
+    <label for="cPassword" class="form-label">Confirm Password</label>
+    <input
+      type="password"
+      class="form-control"
+      id="cPassword"
+      aria-describedby="cPasswordHelp"
+      formControlName="cPassword"
+    />
+    @if(formControls['cPassword'].invalid && formControls['cPassword'].touched){
+    <div id="cPasswordHelp" class="form-text text-danger">
+      @if(formControls['cPassword'].hasError('required')){
+      <span>Confirm Password is required</span>
+      }@else if(formControls['cPassword'].hasError('passwordMismatch')){
+      <span>Passwords do not match</span>
+      }
+    </div>
+    }
+  </div>
+  <button type="submit" class="btn btn-primary">Sign up</button>
+  <h6 class="text-center">
+    Already have an account?
+    <a routerLink="/login" class="text-decoration-none">Login</a>
+  </h6>
+</form>
+<app-header></app-header>
+<div class="container my-5">
+  <router-outlet></router-outlet>
+</div>
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+
+import { LoginComponent } from './login.component';
+
+describe('LoginComponent', () => {
+  let component: LoginComponent;
+  let fixture: ComponentFixture<LoginComponent>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [LoginComponent]
+    })
+    .compileComponents();
+
+    fixture = TestBed.createComponent(LoginComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+});
+import { Component } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
+
+
+@Component({
+  selector: 'app-login',
+  imports: [FormsModule, RouterLink],
+  templateUrl: './login.component.html',
+  styleUrl: './login.component.css'
+})
+export class LoginComponent {
+  constructor(private router: Router) {}
+
+  formValues = {
+    email: '',
+    password: ''
+  }
+  
+
+  handleSubmitForm(form: any) {
+    if (form.invalid) {
+      form.form.markAllAsTouched();
+      return;
+    }
+
+    console.log('Form Submitted:', this.formValues);
+    this.router.navigate(['/']);
+  }
+
+}
+
+<form #loginForm="ngForm" (ngSubmit)="handleSubmitForm(loginForm)">
+  <div class="mb-3">
+    <label for="email" class="form-label">Email address</label>
+    <input
+      type="email"
+      class="form-control"
+      id="email"
+      name="email"
+      pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{3,}$"
+      [(ngModel)]="formValues.email"
+      required
+      #email="ngModel"
+    />
+    @if (email.invalid && (email.touched || loginForm.submitted)) {
+    <div id="emailHelp" class="form-text text-danger">
+      @if(email.hasError('required')){
+      <span>Email is required</span>
+      }@else if(email.hasError('pattern')){
+      <span>Insert valid email like yourName&#64;example.com</span>
+      }
+    </div>
+    }
+  </div>
+  <div class="mb-3">
+    <label for="password" class="form-label">Password</label>
+    <input
+      type="password"
+      class="form-control"
+      id="password"
+      name="password"
+      [(ngModel)]="formValues.password"
+      required
+      minlength="6"
+      #password="ngModel"
+    />
+    @if (password.invalid && (password.touched || loginForm.submitted)) {
+    <div id="passwordHelp" class="form-text text-danger">
+      @if(password.hasError('required')){
+      <span>Password is required</span>
+      }@else if(password.hasError('minlength')){
+      <span>Min length is 8 characters</span>
+      }
+    </div>
+    }
+  </div>
+
+  <button type="submit" class="btn btn-primary">Login</button>
+  <h6 class="text-center">
+    Don't have an account yet?
+    <a routerLink="/register" class="text-decoration-none">Create one</a>
+  </h6>
+</form>
+import { DiscountPipe } from './discount.pipe';
+
+describe('DiscountPipe', () => {
+  it('create an instance', () => {
+    const pipe = new DiscountPipe();
+    expect(pipe).toBeTruthy();
+  });
+});
+import { RatingPipe } from './rating.pipe';
+
+describe('RatingPipe', () => {
+  it('create an instance', () => {
+    const pipe = new RatingPipe();
+    expect(pipe).toBeTruthy();
+  });
+});
+export interface Product {
+  id: number;
+  title: string;
+  description: string;
+  category: string;
+  price: number;
+  discountPercentage: number;
+  rating: number;
+  stock: number;
+  tags: string[];
+  brand?: string;
+  quantity?: number;
+  sku: string;
+  weight: number;
+  dimensions: {
+    width: number;
+    height: number;
+    depth: number;
+  };
+  warrantyInformation: string;
+  shippingInformation: string;
+  availabilityStatus: string;
+  reviews: {
+    rating: number;
+    comment: string;
+    date: string;
+    reviewerName: string;
+    reviewerEmail: string;
+  }[];
+  returnPolicy: string;
+  minimumOrderQuantity: number;
+  meta: {
+    createdAt: string;
+    updatedAt: string;
+    barcode: string;
+    qrCode: string;
+  };
+  images: string[];
+  thumbnail: string;
+}
+import { Component } from '@angular/core';
+import {FormsModule, ReactiveFormsModule} from '@angular/forms';
+import { CommonModule, CurrencyPipe } from '@angular/common';
+import { RouterModule } from '@angular/router';
+import  ProductsCard  from '../../../public/assets/product.json'
+import { Product } from '../products'
+import { RatingPipe } from '../rating.pipe';
+import { AddToCartService } from '../service/cart.service';
+import { RequestService } from '../service/request.service';
+
+
+@Component({
+  selector: 'app-products',
+  imports: [FormsModule, ReactiveFormsModule, CommonModule, CurrencyPipe, RatingPipe, RouterModule],
+  templateUrl: './products.component.html',
+  styleUrls: ['./products.component.css']
+})
+export class ProductsComponent {
+  products: any ;
+  constructor(private _AddToCartService : AddToCartService, private _RequestService:RequestService){}
+
+  ngOnInit(){
+    this._RequestService.getProductList().subscribe((response:any) => this.products = response.products);
+  }
+
+  addToCart(product: any) {
+  this._AddToCartService.addToCart(product);
+  }
+}
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+
+import { ProductsComponent } from './products.component';
+
+describe('ProductsComponent', () => {
+  let component: ProductsComponent;
+  let fixture: ComponentFixture<ProductsComponent>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [ProductsComponent]
+    })
+    .compileComponents();
+
+    fixture = TestBed.createComponent(ProductsComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+});
+<div class="row mt-5 w-100">
+  <div
+    class="col-sm-12 col-md-6 col-lg-3 mb-4 d-flex justify-content-center"
+    *ngFor="let product of products"
+  >
+    <a class="text-decoration-none" style="color: inherit">
+      <div class="card" style="width: 18rem">
+        <img
+          [src]="product.images"
+          [routerLink]="['/product', product.id]"
+          class="card-img-top pointer"
+          alt="{{ product.title }}"
+        />
+        <div class="card-body">
+          <h5 class="card-title">{{ product.title }}</h5>
+          <p class="card-text">
+            {{ product.price | currency : "EGP " }}
+          </p>
+          <p class="card-text">Category: {{ product.category }}</p>
+          <p class="card-text">Stock: {{ product.stock }}</p>
+          <p class="card-text">Rating: {{ product.rating | rating }}</p>
+          <button
+            type="button"
+            class="btn btn-primary me-3"
+            (click)="addToCart(product)"
+          >
+            Add to Cart
+          </button>
+          <button
+            *ngIf="product.stock === 0"
+            type="button"
+            class="btn btn-danger"
+            disabled
+          >
+            Out Of Stock
+          </button>
+          <button
+            *ngIf="product.stock > 0"
+            type="button"
+            class="btn btn-success"
+            disabled
+          >
+            In Stock
+          </button>
+        </div>
+      </div>
+    </a>
+  </div>
+</div>
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+
+import { NotFoundComponent } from './not-found.component';
+
+describe('NotFoundComponent', () => {
+  let component: NotFoundComponent;
+  let fixture: ComponentFixture<NotFoundComponent>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [NotFoundComponent]
+    })
+    .compileComponents();
+
+    fixture = TestBed.createComponent(NotFoundComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+});
+import { Component } from '@angular/core';
+
+@Component({
+  selector: 'app-not-found',
+  imports: [],
+  templateUrl: './not-found.component.html',
+  styleUrl: './not-found.component.css'
+})
+export class NotFoundComponent {
+
+}
+<p>not-found works!</p>
+import { TestBed } from '@angular/core/testing';
+
+import { CartService } from './cart.service';
+
+describe('CartService', () => {
+  let service: CartService;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({});
+    service = TestBed.inject(CartService);
+  });
+
+  it('should be created', () => {
+    expect(service).toBeTruthy();
+  });
+});
+import { Injectable } from '@angular/core';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { Product } from '../products';
+
+@Injectable({
+  providedIn: 'root',
+})
+export class AddToCartService {
+  private cartProducts: Product[] = [];
+  constructor() {}
+  private cart = new BehaviorSubject<Product[]>(this.cartProducts);
+  getCart():Observable<Product[]> {
+    return this.cart.asObservable();
+  }
+
+  addToCart(newProduct: Product) {
+    let productInCart = this.cartProducts.find((item) => item.id === newProduct.id);
+    if(productInCart){
+      productInCart.quantity = (productInCart.quantity || 1) + 1;
+    }else {
+      this.cartProducts.push({ ...newProduct, quantity: 1 });
+    }
+    this.cart.next([...this.cartProducts]);
+  console.log('Cart Updated:', this.cartProducts);
+  }
+
+  increaseQuantity(id: number){
+let product = this.cartProducts.find((item) => item.id === id);
+if(product){
+  if((product.quantity || 1) < product.stock){
+    product.quantity = (product.quantity || 1) + 1;
+    this.cart.next([...this.cartProducts]);
+  }
+}}
+
+  decreaseQuantity(id: number){
+let product = this.cartProducts.find((item) => item.id === id);
+if (product && product.quantity && product.quantity > 1) {
+  product.quantity--;
+} else {
+  this.cartProducts = this.cartProducts.filter((item) => item.id !== id);
+}
+this.cart.next([...this.cartProducts]);
+}
+
+remove(id: number) {
+  this.cartProducts = this.cartProducts.filter(p => p.id !== id);
+this.cart.next([...this.cartProducts]);
+}
+
+clearCart(){
+  this.cartProducts = []
+this.cart.next([...this.cartProducts]);
+}
+}
+
+
+import { TestBed } from '@angular/core/testing';
+
+import { RequestService } from './request.service';
+
+describe('RequestService', () => {
+  let service: RequestService;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({});
+    service = TestBed.inject(RequestService);
+  });
+
+  it('should be created', () => {
+    expect(service).toBeTruthy();
+  });
+});
+import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class RequestService {
+
+  constructor(private http:HttpClient) { }
+
+  getProductList(): Observable<any>{
+    return this.http.get(`https://dummyjson.com/products`)
+  }
+
+  getProductDetails(id:string){
+    return this.http.get(`https://dummyjson.com/products/${id}`)
+
+  }
+}
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+
+import { ProductDetailsComponent } from './product-details.component';
+
+describe('ProductDetailsComponent', () => {
+  let component: ProductDetailsComponent;
+  let fixture: ComponentFixture<ProductDetailsComponent>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [ProductDetailsComponent]
+    })
+    .compileComponents();
+
+    fixture = TestBed.createComponent(ProductDetailsComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+});
+import { Component, Input } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+import {FormsModule, ReactiveFormsModule} from '@angular/forms';
+import { CommonModule } from '@angular/common';
+import  ProductsCard  from '../../../public/assets/product.json'
+import { Product } from '../products'
+import { RatingPipe } from '../rating.pipe';
+import { DiscountPipe } from '../discount.pipe';
+import { RequestService } from '../service/request.service';
+import { AddToCartService } from '../service/cart.service';
+
+@Component({
+  selector: 'app-product-details',
+  imports: [FormsModule, ReactiveFormsModule, CommonModule, RatingPipe, DiscountPipe],
+  templateUrl: './product-details.component.html',
+  styleUrl: './product-details.component.css'
+})
+export class ProductDetailsComponent {
+
+  @Input() id : string = ''
+  selectedProduct !: Product;
+  constructor(private activatedRoute: ActivatedRoute, private _RequestService:RequestService, private _AddToCartService: AddToCartService) {}
+
+  ngOnChanges(){
+    console.log(this.id)
+  }
+
+  ngOnInit() {
+    this.activatedRoute.params.subscribe(params =>{const paramId = params['id']
+      this._RequestService.getProductDetails(paramId).subscribe((response:any) => this.selectedProduct = response);
+    })
+}
+
+addToCart(product: any) {
+  this._AddToCartService.addToCart(product);
+  }
+}
+
+<div *ngIf="selectedProduct; else noProductFound">
+  <div class="card mb-3">
+    <div class="row g-0">
+      <div class="col-md-4">
+        <img
+          [src]="selectedProduct.images"
+          class="img-fluid rounded-start"
+          alt="{{ selectedProduct.title }}"
+        />
+      </div>
+      <div class="col-md-8">
+        <div class="card-body">
+          <h5 class="card-title">{{ selectedProduct.title }}</h5>
+          <p class="card-text">{{ selectedProduct.description }}</p>
+          <p class="card-text text-decoration-line-through">
+            Price: {{ selectedProduct.price | currency : "EGP " }}
+          </p>
+          <p class="card-text">
+            After Discount:
+            {{
+              selectedProduct.price
+                | discount : selectedProduct.discountPercentage
+            }}
+          </p>
+          <p class="card-text">Category: {{ selectedProduct.category }}</p>
+          <p class="card-text">Stock: {{ selectedProduct.stock }}</p>
+          <p class="card-text">Rating: {{ selectedProduct.rating | rating }}</p>
+          <button
+            *ngIf="selectedProduct.stock === 0"
+            type="button"
+            class="btn btn-danger"
+          >
+            Out Of Stock
+          </button>
+          <button
+            *ngIf="selectedProduct.stock > 0"
+            type="button"
+            class="btn btn-success"
+          >
+            In Stock
+          </button>
+          <button
+            type="button"
+            class="btn btn-primary mx-3"
+            (click)="addToCart(selectedProduct)"
+          >
+            Add to Cart
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<ng-template #noProductFound>
+  <p class="text-center mt-5">Product not found!</p>
+</ng-template>
+import { Component } from '@angular/core';
+import  ProductsCard  from '../../../public/assets/product.json'
+import { ActivatedRoute } from '@angular/router';
+import { Product } from '../products'
+import { CommonModule } from '@angular/common';
+import { AddToCartService } from '../service/cart.service';
+
+@Component({
+  selector: 'app-cart',
+  imports: [CommonModule],
+  templateUrl: './cart.component.html',
+  styleUrl: './cart.component.css'
+})
+export class CartComponent {
+cartProducts : Product[] = [];
+
+  constructor(private _AddToCartService : AddToCartService) {}
+
+  ngOnChanges(){
+    console.log()
+  }
+
+  ngOnInit() {
+    this._AddToCartService.getCart().subscribe({
+    next:(result) => {
+    this.cartProducts = result
+      console.log(this.cartProducts)
+    }});
+  }
+
+  increase(id: number){
+  this._AddToCartService.increaseQuantity(id)
+  }
+
+  decrease(id: number){
+  this._AddToCartService.decreaseQuantity(id)
+  }
+
+  remove(id: number) {
+this._AddToCartService.remove(id)
+  }
+
+  clearCart(){
+    this._AddToCartService.clearCart()
+  }
+
+getOneProductTotal(product: Product): number {
+return parseFloat((product.price * (product.quantity || 1)).toFixed(2));
+}
+
+getTotal(): number {
+  return parseFloat(this.cartProducts.reduce((total, product) => total + (product.price * (product.quantity || 1)), 0).toFixed(2));
+}
+
+}
+
+<div class="container mt-4">
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Product</th>
+          <th>Name</th>
+          <th>Price</th>
+          <th>Quantity</th>
+          <th>Subtotal</th>
+          <th>Remove</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let product of cartProducts">
+          <td>
+            <img [src]="product.images" alt="Product Image" width="60" />
+          </td>
+          <td>{{ product.title }}</td>
+          <td>{{ product.price }} EGP</td>
+          <td>
+            <button
+              (click)="decrease(product.id)"
+              class="btn btn-sm btn-outline-danger"
+            >
+              -
+            </button>
+            <span class="mx-2">{{ product.quantity }}</span>
+            <button
+              (click)="increase(product.id)"
+              class="btn btn-sm btn-outline-success"
+            >
+              +
+            </button>
+          </td>
+          <td>{{ getOneProductTotal(product) }} EGP</td>
+          <td>
+            <button
+              (click)="remove(product.id)"
+              class="btn btn-sm btn-outline-danger"
+            >
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="d-flex justify-content-between align-items-center">
+    <div class="input-group w-50">
+      <input type="text" class="form-control" placeholder="Coupon code" />
+      <button class="btn btn-dark">Apply coupon</button>
+    </div>
+    <button class="btn btn-dark" (click)="clearCart()">Remove All</button>
+  </div>
+
+  <div class="card mt-4 p-3">
+    <p>
+      Total: <strong>{{ getTotal() }} EGP</strong>
+    </p>
+    <button class="btn btn-primary w-100">Proceed to checkout</button>
+  </div>
+</div>
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+
+import { CartComponent } from './cart.component';
+
+describe('CartComponent', () => {
+  let component: CartComponent;
+  let fixture: ComponentFixture<CartComponent>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [CartComponent]
+    })
+    .compileComponents();
+
+    fixture = TestBed.createComponent(CartComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+});
+import { Pipe, PipeTransform } from '@angular/core';
+
+@Pipe({
+  name: 'rating'
+})
+export class RatingPipe implements PipeTransform {
+
+  transform(value: number): string {
+    const roundedRating = Math.ceil(value);
+
+    let stars = '';
+    for (let i = 0; i < roundedRating; i++) {
+      stars += '⭐';
+
+    }
+
+    return stars;
+  }
+
+}
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import { provideRouter, withComponentInputBinding, withViewTransitions } from '@angular/router';
+
+import { routes } from './app.routes';
+import { provideHttpClient } from '@angular/common/http';
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
+    provideRouter(routes, withComponentInputBinding() , withViewTransitions()), provideHttpClient(),
+  ],
+};
+import { Routes } from '@angular/router';
+import { ProductsComponent } from './products/products.component';
+import { LoginComponent } from './login/login.component';
+import { RegisterComponent } from './register/register.component';
+import { ProductDetailsComponent } from './product-details/product-details.component';
+import { NotFoundComponent } from './not-found/not-found.component';
+import { CartComponent } from './cart/cart.component';
+
+export const routes: Routes = [
+  {
+    path: '',
+    component: ProductsComponent,
+    title: 'Product List'
+  },
+  {
+    path: 'product/:id',
+    component: ProductDetailsComponent,
+    title: 'Recipe details',
+  },
+  {
+    path: 'register',
+    component: RegisterComponent,
+    title: 'Register'
+  },
+  {
+    path: 'login',
+    component: LoginComponent,
+    title: 'Login'
+  },
+  {
+    path: 'cart',
+    component: CartComponent,
+    title: 'Cart'
+  },
+  {
+    path: '**',
+    component: NotFoundComponent,
+    title: 'Not Found'
+  }
+];
+<nav class="navbar navbar-expand-lg bg-body-tertiary">
+  <div class="container-fluid">
+    <span class="navbar-brand pointer" routerLink="/">Logo</span>
+    <button
+      class="navbar-toggler"
+      type="button"
+      data-bs-toggle="collapse"
+      data-bs-target="#navbarNavAltMarkup"
+      aria-controls="navbarNavAltMarkup"
+      aria-expanded="false"
+      aria-label="Toggle navigation"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div
+      class="collapse navbar-collapse justify-content-end"
+      id="navbarNavAltMarkup"
+    >
+      <div class="navbar-nav">
+        <a
+          class="nav-link"
+          routerLink="/"
+          routerLinkActive="active_link"
+          [routerLinkActiveOptions]="{ exact: true }"
+          >Products</a
+        >
+        <a class="nav-link" routerLink="/login" routerLinkActive="active_link"
+          >Login</a
+        >
+        <a
+          class="nav-link"
+          routerLink="/register"
+          routerLinkActive="active_link"
+          >Register</a
+        >
+        <a
+          class="nav-link d-flex align-items-center"
+          routerLink="/cart"
+          routerLinkActive="active_link"
+        >
+          <i class="fa-solid fa-cart-shopping me-2"></i
+          >{{ cartProducts.length }}
+        </a>
+      </div>
+    </div>
+  </div>
+</nav>
+import { Component } from '@angular/core';
+import { RouterLink, RouterLinkActive } from '@angular/router';
+import { AddToCartService } from '../service/cart.service';
+import { Product } from '../products';
+
+@Component({
+  selector: 'app-header',
+  imports: [RouterLink, RouterLinkActive],
+  templateUrl: './header.component.html',
+  styleUrl: './header.component.css'
+})
+export class HeaderComponent {
+  cartProducts : Product[] = [];
+  constructor(private _AddToCartService : AddToCartService) {}
+  ngOnInit() {
+    this._AddToCartService.getCart().subscribe({
+    next:(result) => {
+    this.cartProducts = result
+      console.log("hello", this.cartProducts)
+    }});
+  }
+}
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+
+import { HeaderComponent } from './header.component';
+
+describe('HeaderComponent', () => {
+  let component: HeaderComponent;
+  let fixture: ComponentFixture<HeaderComponent>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [HeaderComponent]
+    })
+    .compileComponents();
+
+    fixture = TestBed.createComponent(HeaderComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+});
+import { TestBed } from '@angular/core/testing';
+import { AppComponent } from './app.component';
+
+describe('AppComponent', () => {
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [AppComponent],
+    }).compileComponents();
+  });
+
+  it('should create the app', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    const app = fixture.componentInstance;
+    expect(app).toBeTruthy();
+  });
+
+  it(`should have the 'ecommerce' title`, () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    const app = fixture.componentInstance;
+    expect(app.title).toEqual('ecommerce');
+  });
+
+  it('should render title', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, ecommerce');
+  });
+});
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Ecommerce</title>
+  <base href="/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+</head>
+<body>
+  <app-root></app-root>
+</body>
+</html>

@@ -1,0 +1,7 @@
+.active_link {
+  font-weight: bold;
+  color: orange;
+}
+.pointer {
+  cursor: pointer;
+}
